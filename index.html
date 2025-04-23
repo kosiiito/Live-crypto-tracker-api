@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Live Prices</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+    }
+    table {
+      border-collapse: collapse;
+      width: 300px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    #status {
+      margin-bottom: 1em;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <h2>Crypto Live Prices</h2>
+  <div id="status">Not connected</div>
+  <button onclick="connect()">Connect to WebSocket</button>
+  <table>
+    <thead>
+      <tr><th>Currency</th><th>Price (USD)</th></tr>
+    </thead>
+    <tbody id="priceTable">
+      <tr><td>BTC</td><td id="btc">-</td></tr>
+      <tr><td>ETH</td><td id="eth">-</td></tr>
+      <tr><td>DOGE</td><td id="doge">-</td></tr>
+    </tbody>
+  </table>
+
+  <script>
+    let stompClient = null;
+
+    function connect() {
+      const socket = new SockJS('http://localhost:8084/ws');
+      stompClient = Stomp.over(socket);
+      stompClient.connect({}, function (frame) {
+        document.getElementById("status").textContent = "Connected";
+    stompClient.subscribe('/topic/prices', function (message) {
+        console.log('Raw message body:', message.body);
+        const prices = JSON.parse(message.body);
+        document.getElementById("btc").textContent = prices.bitcoin;
+        document.getElementById("eth").textContent = prices.ethereum;
+        document.getElementById("doge").textContent = prices.dogecoin;
+    });
+
+      });
+    }
+  </script>
+</body>
+</html>
